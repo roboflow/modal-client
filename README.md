@@ -1,4 +1,17 @@
-# Modal Python Library
+# RFModal - Roboflow Fork of Modal Python Library
+
+This is a Roboflow fork of the [Modal Python library](https://github.com/modal-labs/modal-client).
+
+## Fork Information
+
+- **Original Package**: [modal](https://pypi.org/project/modal/)
+- **Original Author**: Modal Labs
+- **Fork Maintainer**: Roboflow, Inc.
+- **PyPI Package**: `rfmodal`
+
+---
+
+# Original README: Modal Python Library
 
 [![PyPI Version](https://img.shields.io/pypi/v/modal.svg)](https://pypi.org/project/modal/)
 [![License](https://img.shields.io/badge/license-apache_2.0-darkviolet.svg)](https://github.com/modal-labs/modal-client/blob/master/LICENSE)
@@ -19,20 +32,14 @@ a [user guide](https://modal.com/docs/guide), and the detailed
 
 **This library requires Python 3.9 – 3.13.**
 
-Install the package with `pip`:
+Install the Roboflow fork:
 
-```bash
-pip install modal
+```shell
+pip install rfmodal
 ```
 
-You can create a Modal account (or link your existing one) directly on the
-command line:
+## Developing
 
-```bash
-python3 -m modal setup
-```
-
-## Support
-
-For usage questions and other support, please reach out on the
-[Modal Slack](https://modal.com/slack).
+See the
+[contributing guide](https://github.com/modal-labs/modal-client/blob/main/CONTRIBUTING.md)
+for instructions on setting up a development environment.

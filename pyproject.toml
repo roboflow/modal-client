@@ -3,8 +3,8 @@ requires = ["setuptools~=77.0.3", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "modal"
-description = "Python client library for Modal"
+name = "rfmodal"
+description = "Roboflow fork of Modal Python client library"
 readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.9"
