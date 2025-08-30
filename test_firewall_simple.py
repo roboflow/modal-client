@@ -1,10 +1,11 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Standalone test for rffickle integration in Modal's serialization."""
 
-import pickle
-import os
-import sys
 import io
+import os
+import pickle
+import sys
 from unittest.mock import Mock
 
 

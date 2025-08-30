@@ -1,8 +1,9 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Test that Cls.from_name() with use_firewall=True works correctly."""
 
-import sys
 import os
+import sys
 from unittest.mock import MagicMock, Mock
 
 

@@ -1,8 +1,10 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Simple test to verify no unsafe fallback."""
 
-import sys
 import os
+import sys
+from unittest.mock import MagicMock
 
 # Hide rffickle temporarily
 sys.modules['rffickle'] = None
@@ -10,7 +12,6 @@ sys.modules['rffickle'] = None
 # Now try to import the deserialize function
 try:
     # Add minimal mocks
-    from unittest.mock import MagicMock
     sys.modules['modal_proto'] = MagicMock()
     sys.modules['modal._runtime'] = MagicMock()
     sys.modules['modal._runtime.execution_context'] = MagicMock()

@@ -128,11 +128,13 @@ class _Invocation:
         function_call_id: str,
         client: _Client,
         retry_context: Optional[_RetryContext] = None,
+        use_firewall: bool = False,
     ):
         self.stub = stub
         self.client = client  # Used by the deserializer.
         self.function_call_id = function_call_id  # TODO: remove and use only input_id
         self._retry_context = retry_context
+        self._use_firewall = use_firewall
 
     @staticmethod
     async def create(
@@ -196,7 +198,7 @@ class _Invocation:
                 item=item,
                 sync_client_retries_enabled=response.sync_client_retries_enabled,
             )
-            return _Invocation(stub, function_call_id, client, retry_context)
+            return _Invocation(stub, function_call_id, client, retry_context, use_firewall=function._use_firewall)
 
         request_put = api_pb2.FunctionPutInputsRequest(
             function_id=function_id, inputs=[item], function_call_id=function_call_id
@@ -218,7 +220,7 @@ class _Invocation:
             item=item,
             sync_client_retries_enabled=response.sync_client_retries_enabled,
         )
-        return _Invocation(stub, function_call_id, client, retry_context)
+        return _Invocation(stub, function_call_id, client, retry_context, use_firewall=function._use_firewall)
 
     async def pop_function_call_outputs(
         self,
@@ -413,6 +415,7 @@ class _InputPlaneInvocation:
         function_id: str,
         retry_policy: api_pb2.FunctionRetryPolicy,
         input_plane_region: str,
+        use_firewall: bool = False,
     ):
         self.stub = stub
         self.client = client  # Used by the deserializer.
@@ -421,6 +424,7 @@ class _InputPlaneInvocation:
         self.function_id = function_id
         self.retry_policy = retry_policy
         self.input_plane_region = input_plane_region
+        self._use_firewall = use_firewall
 
     @staticmethod
     async def create(
@@ -456,7 +460,7 @@ class _InputPlaneInvocation:
         attempt_token = response.attempt_token
 
         return _InputPlaneInvocation(
-            stub, attempt_token, client, input_item, function_id, response.retry_policy, input_plane_region
+            stub, attempt_token, client, input_item, function_id, response.retry_policy, input_plane_region, use_firewall=function._use_firewall
         )
 
     async def run_function(self) -> Any:

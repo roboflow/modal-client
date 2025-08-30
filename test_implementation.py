@@ -1,8 +1,9 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Test per-function firewall configuration implementation."""
 
-import pickle
 import os
+import pickle
 import sys
 
 

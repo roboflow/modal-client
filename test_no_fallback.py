@@ -1,8 +1,9 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Test that firewall properly fails when rffickle is not available."""
 
-import sys
 import pickle
+import sys
 from unittest.mock import MagicMock, patch
 
 

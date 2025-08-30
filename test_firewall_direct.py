@@ -1,11 +1,12 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Direct test of the modified serialization module."""
 
-import pickle
-import os
-import sys
 import io
-from unittest.mock import Mock, MagicMock
+import os
+import pickle
+import sys
+from unittest.mock import MagicMock, Mock
 
 
 def test_serialization_directly():

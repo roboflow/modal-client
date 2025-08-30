@@ -1,8 +1,9 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Test script to verify rffickle integration with modal-client."""
 
-import pickle
 import os
+import pickle
 import sys
 from unittest.mock import Mock, patch
 

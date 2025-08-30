@@ -1,10 +1,11 @@
+# Copyright Modal Labs 2025
 #!/usr/bin/env python3
 """Test per-function firewall configuration."""
 
-import pickle
 import os
+import pickle
 import sys
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 
 def test_per_function_firewall():
