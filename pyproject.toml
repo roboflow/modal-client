@@ -19,6 +19,7 @@ dependencies = [
     "click~=8.1",
     "grpclib>=0.4.7,<0.4.9",
     "protobuf>=3.19,<7.0,!=4.24.0",
+    "rffickle",
     "rich>=12.0.0",
     "synchronicity~=0.10.2",
     "toml",
