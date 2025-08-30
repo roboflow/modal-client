@@ -627,6 +627,7 @@ More information on class parameterization can be found here: https://modal.com/
         *,
         namespace: Any = None,  # mdmd:line-hidden
         environment_name: Optional[str] = None,
+        use_firewall: bool = False,  # Whether to use rffickle firewall for safe deserialization
     ) -> "_Cls":
         """Reference a Cls from a deployed App by its name.
 
@@ -676,6 +677,8 @@ More information on class parameterization can be found here: https://modal.com/
             namespace=namespace,
             environment_name=_environment_name,
         )
+        # Set the firewall flag on the class service function
+        cls._class_service_function._use_firewall = use_firewall
         cls._name = name
         return cls
 

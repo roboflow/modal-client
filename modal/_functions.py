@@ -128,11 +128,13 @@ class _Invocation:
         function_call_id: str,
         client: _Client,
         retry_context: Optional[_RetryContext] = None,
+        use_firewall: bool = False,
     ):
         self.stub = stub
         self.client = client  # Used by the deserializer.
         self.function_call_id = function_call_id  # TODO: remove and use only input_id
         self._retry_context = retry_context
+        self._use_firewall = use_firewall
 
     @staticmethod
     async def create(
@@ -196,7 +198,7 @@ class _Invocation:
                 item=item,
                 sync_client_retries_enabled=response.sync_client_retries_enabled,
             )
-            return _Invocation(stub, function_call_id, client, retry_context)
+            return _Invocation(stub, function_call_id, client, retry_context, use_firewall=function._use_firewall)
 
         request_put = api_pb2.FunctionPutInputsRequest(
             function_id=function_id, inputs=[item], function_call_id=function_call_id
@@ -218,7 +220,7 @@ class _Invocation:
             item=item,
             sync_client_retries_enabled=response.sync_client_retries_enabled,
         )
-        return _Invocation(stub, function_call_id, client, retry_context)
+        return _Invocation(stub, function_call_id, client, retry_context, use_firewall=function._use_firewall)
 
     async def pop_function_call_outputs(
         self,
@@ -297,7 +299,7 @@ class _Invocation:
             or not ctx.sync_client_retries_enabled
         ):
             item = await self._get_single_output()
-            return await _process_result(item.result, item.data_format, self.stub, self.client)
+            return await _process_result(item.result, item.data_format, self.stub, self.client, use_firewall=self._use_firewall)
 
         # User errors including timeouts are managed by the user specified retry policy.
         user_retry_manager = RetryManager(ctx.retry_policy)
@@ -305,7 +307,7 @@ class _Invocation:
         while True:
             item = await self._get_single_output(ctx.input_jwt)
             if item.result.status in TERMINAL_STATUSES:
-                return await _process_result(item.result, item.data_format, self.stub, self.client)
+                return await _process_result(item.result, item.data_format, self.stub, self.client, use_firewall=self._use_firewall)
 
             if item.result.status != api_pb2.GenericResult.GENERIC_STATUS_INTERNAL_FAILURE:
                 # non-internal failures get a delay before retrying
@@ -313,7 +315,7 @@ class _Invocation:
                 if delay_ms is None:
                     # no more retries, this should raise an error when the non-success status is converted
                     # to an exception:
-                    return await _process_result(item.result, item.data_format, self.stub, self.client)
+                    return await _process_result(item.result, item.data_format, self.stub, self.client, use_firewall=self._use_firewall)
                 await asyncio.sleep(delay_ms / 1000)
 
             await self._retry_input()
@@ -336,7 +338,7 @@ class _Invocation:
             raise TimeoutError()
 
         return await _process_result(
-            response.outputs[0].result, response.outputs[0].data_format, self.stub, self.client
+            response.outputs[0].result, response.outputs[0].data_format, self.stub, self.client, use_firewall=self._use_firewall
         )
 
     async def run_generator(self):
@@ -387,7 +389,7 @@ class _Invocation:
             for output in outputs:
                 if output.idx != current_index:
                     break
-                result = await _process_result(output.result, output.data_format, self.stub, self.client)
+                result = await _process_result(output.result, output.data_format, self.stub, self.client, use_firewall=self._use_firewall)
                 yield output.idx, result
                 current_index += 1
 
@@ -413,6 +415,7 @@ class _InputPlaneInvocation:
         function_id: str,
         retry_policy: api_pb2.FunctionRetryPolicy,
         input_plane_region: str,
+        use_firewall: bool = False,
     ):
         self.stub = stub
         self.client = client  # Used by the deserializer.
@@ -421,6 +424,7 @@ class _InputPlaneInvocation:
         self.function_id = function_id
         self.retry_policy = retry_policy
         self.input_plane_region = input_plane_region
+        self._use_firewall = use_firewall
 
     @staticmethod
     async def create(
@@ -456,7 +460,7 @@ class _InputPlaneInvocation:
         attempt_token = response.attempt_token
 
         return _InputPlaneInvocation(
-            stub, attempt_token, client, input_item, function_id, response.retry_policy, input_plane_region
+            stub, attempt_token, client, input_item, function_id, response.retry_policy, input_plane_region, use_firewall=function._use_firewall
         )
 
     async def run_function(self) -> Any:
@@ -482,7 +486,7 @@ class _InputPlaneInvocation:
             if await_response.HasField("output"):
                 if await_response.output.result.status in TERMINAL_STATUSES:
                     return await _process_result(
-                        await_response.output.result, await_response.output.data_format, self.client.stub, self.client
+                        await_response.output.result, await_response.output.data_format, self.client.stub, self.client, use_firewall=self._use_firewall
                     )
 
                 if await_response.output.result.status == api_pb2.GenericResult.GENERIC_STATUS_INTERNAL_FAILURE:
@@ -502,7 +506,7 @@ class _InputPlaneInvocation:
                     # An unsuccessful status should raise an error when it's converted to an exception.
                     # Note: Blob download is done on the control plane stub not the input plane stub!
                     return await _process_result(
-                        await_response.output.result, await_response.output.data_format, self.client.stub, self.client
+                        await_response.output.result, await_response.output.data_format, self.client.stub, self.client, use_firewall=self._use_firewall
                     )
                 await asyncio.sleep(delay_ms / 1000)
 
@@ -645,6 +649,7 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
     _build_args: dict
 
     _is_generator: Optional[bool] = None
+    _use_firewall: bool = False  # Whether to use rffickle firewall for safe deserialization
 
     # when this is the method of a class/object function, invocation of this function
     # should supply the method name in the FunctionInput:
@@ -689,6 +694,7 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
         enable_memory_snapshot: bool = False,
         block_network: bool = False,
         restrict_modal_access: bool = False,
+        use_firewall: bool = False,
         i6pn_enabled: bool = False,
         # Experimental: Clustered functions
         cluster_size: Optional[int] = None,
@@ -1108,6 +1114,7 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
         obj._is_method = False
         obj._spec = function_spec  # needed for modal shell
         obj._webhook_config = webhook_config  # only set locally
+        obj._use_firewall = use_firewall  # whether to use rffickle for safe deserialization
 
         # Used to check whether we should rebuild a modal.Image which uses `run_function`.
         gpus: list[GPU_T] = gpu if isinstance(gpu, list) else [gpu]
@@ -1228,6 +1235,7 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
         fun._info = self._info
         fun._obj = obj
         fun._spec = self._spec  # TODO (elias): fix - this is incorrect when using with_options
+        fun._use_firewall = self._use_firewall  # Preserve firewall setting
         return fun
 
     @live_method
@@ -1358,6 +1366,7 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
         *,
         namespace=None,  # mdmd:line-hidden
         environment_name: Optional[str] = None,
+        use_firewall: bool = False,  # Whether to use rffickle firewall for safe deserialization
     ) -> "_Function":
         """Reference a Function from a deployed App by its name.
 
@@ -1381,7 +1390,9 @@ class _Function(typing.Generic[P, ReturnType, OriginalReturnType], _Object, type
             )
 
         warn_if_passing_namespace(namespace, "modal.Function.from_name")
-        return cls._from_name(app_name, name, environment_name=environment_name)
+        func = cls._from_name(app_name, name, environment_name=environment_name)
+        func._use_firewall = use_firewall
+        return func
 
     @staticmethod
     async def lookup(
