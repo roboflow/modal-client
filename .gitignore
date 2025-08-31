@@ -9,6 +9,7 @@ __pycache__
 .venv
 venv/
 build/
+dist/
 *.pyi
 **/*.txt
 **/.DS_Store

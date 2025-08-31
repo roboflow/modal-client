@@ -35,7 +35,12 @@ jobs:
       - name: 📦 Install build dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install build twine
+          pip install build twine grpcio-tools grpclib
+          
+      - name: 🔨 Generate protobuf files
+        run: |
+          chmod +x build_for_pypi.sh
+          ./build_for_pypi.sh
           
       - name: 🏗️ Build package
         run: |

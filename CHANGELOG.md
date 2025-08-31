@@ -6,6 +6,19 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.1 (2025-08-30)
+
+**Bug fixes:**
+- Fixed PyPI package build to include generated protobuf files (`api_pb2.py`, `api_grpc.py`, etc.)
+- Added `build_for_pypi.sh` script to generate protobuf files before packaging
+- Updated GitHub Actions workflows to run protobuf generation during PyPI deployment
+- Added `dist/` directory to `.gitignore` to prevent committing build artifacts
+
+**Build improvements:**
+- Enhanced build script with error checking and verification of generated files
+- Ensured all protobuf files are properly included in the wheel distribution
+- Fixed ImportError issues when installing rfmodal from PyPI
+
 ### 1.2.0 (2025-08-29)
 
 This is a Roboflow fork of the Modal client that adds support for `rffickle` - a secure deserialization library for untrusted pickle files.
