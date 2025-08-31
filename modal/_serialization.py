@@ -96,13 +96,29 @@ def serialize(obj: Any) -> bytes:
     return buf.getvalue()
 
 
-def deserialize(s: bytes, client) -> Any:
-    """Deserializes object and replaces all client placeholders by self."""
+def deserialize(s: bytes, client, use_firewall: bool = False) -> Any:
+    """Deserializes object and replaces all client placeholders by self.
+    
+    Args:
+        s: Serialized bytes to deserialize
+        client: Modal client instance
+        use_firewall: If True, use rffickle firewall for safe deserialization.
+                     This should be set per-function using the use_firewall parameter.
+    """
     from ._runtime.execution_context import is_local  # Avoid circular import
 
     env = "local" if is_local() else "remote"
     try:
-        return Unpickler(client, io.BytesIO(s)).load()
+        if use_firewall and env == "local":
+            # CLIENT SIDE with firewall enabled: use rffickle for safety
+            # NEVER fall back to regular pickle - if firewall is requested but unavailable, fail
+            from rffickle import DefaultFirewall
+            firewall = DefaultFirewall()
+            # This will block dangerous operations
+            return firewall.loads(s)
+        else:
+            # Regular deserialization (server-side or firewall disabled)
+            return Unpickler(client, io.BytesIO(s)).load()
     except AttributeError as exc:
         # We use a different cloudpickle version pre- and post-3.11. Unfortunately cloudpickle
         # doesn't expose some kind of serialization version number, so we have to guess based
@@ -359,9 +375,9 @@ def serialize_data_format(obj: Any, data_format: int) -> bytes:
         raise InvalidError(f"Unknown data format {data_format!r}")
 
 
-def deserialize_data_format(s: bytes, data_format: int, client) -> Any:
+def deserialize_data_format(s: bytes, data_format: int, client, use_firewall: bool = False) -> Any:
     if data_format == api_pb2.DATA_FORMAT_PICKLE:
-        return deserialize(s, client)
+        return deserialize(s, client, use_firewall=use_firewall)
     elif data_format == api_pb2.DATA_FORMAT_ASGI:
         return _deserialize_asgi(api_pb2.Asgi.FromString(s))
     elif data_format == api_pb2.DATA_FORMAT_GENERATOR_DONE:

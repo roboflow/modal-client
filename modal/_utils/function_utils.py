@@ -475,7 +475,7 @@ manually, for example:
     return exc
 
 
-async def _process_result(result: api_pb2.GenericResult, data_format: int, stub, client=None):
+async def _process_result(result: api_pb2.GenericResult, data_format: int, stub, client=None, use_firewall: bool = False):
     if result.WhichOneof("data_oneof") == "data_blob_id":
         data = await blob_download(result.data_blob_id, stub)
     else:
@@ -520,7 +520,7 @@ async def _process_result(result: api_pb2.GenericResult, data_format: int, stub,
         raise RemoteError(result.exception)
 
     try:
-        return deserialize_data_format(data, data_format, client)
+        return deserialize_data_format(data, data_format, client, use_firewall=use_firewall)
     except ModuleNotFoundError as deser_exc:
         raise ExecutionError(
             "Could not deserialize result due to error:\n"
