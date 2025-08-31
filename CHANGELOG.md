@@ -6,6 +6,10 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.2 (2025-08-30)
+
+- Added `grpcio>=1.60.0` as a required dependency to fix import errors with generated protobuf files
+
 ### 1.2.1 (2025-08-30)
 
 **Bug fixes:**
