@@ -6,6 +6,14 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.3 (2025-08-30)
+
+**Critical Fix:**
+- Fixed grpclib/grpcio incompatibility by regenerating protobuf files for grpclib
+- Removed erroneous `grpcio>=1.60.0` dependency that was breaking grpclib channel usage
+- Updated build process to use grpclib protoc plugin instead of grpcio's grpc_tools
+- This fixes the `AttributeError: 'Channel' object has no attribute 'unary_unary'` error
+
 ### 1.2.2 (2025-08-30)
 
 - Added `grpcio>=1.60.0` as a required dependency to fix import errors with generated protobuf files
