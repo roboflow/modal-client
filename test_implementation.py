@@ -53,7 +53,7 @@ def test_firewall_feature():
     print("\n5. Checking deserialize function...")
     with open("/Users/yeldarb/Code/modal-client/modal/_serialization.py", "r") as f:
         content = f.read()
-        if "from rffickle import DefaultFirewall" in content:
+        if "from fickle import DefaultFirewall" in content:
             print("✅ deserialize imports rffickle when firewall is enabled")
         else:
             print("❌ deserialize doesn't import rffickle")
@@ -125,7 +125,7 @@ def main():
     try:
         # Verify rffickle is available
         try:
-            from rffickle import DefaultFirewall
+            from fickle import DefaultFirewall
             print("✅ rffickle is installed and available")
         except ImportError:
             print("❌ rffickle is not installed")

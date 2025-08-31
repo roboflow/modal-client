@@ -6,6 +6,11 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.4 (2025-08-30)
+
+**Critical Fix:**
+- Fixed import
+
 ### 1.2.3 (2025-08-30)
 
 **Critical Fix:**
