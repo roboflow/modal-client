@@ -11,6 +11,19 @@ echo "================================================"
 # Ensure we're in the right directory
 cd "$(dirname "$0")"
 
+# Check if protoc is installed
+if ! command -v protoc &> /dev/null; then
+    echo "ERROR: protoc (Protocol Buffer compiler) is not installed!"
+    echo ""
+    echo "Please install it using one of these methods:"
+    echo "  - macOS: brew install protobuf"
+    echo "  - Ubuntu/Debian: sudo apt-get install protobuf-compiler"
+    echo "  - Other: https://grpc.io/docs/protoc-installation/"
+    exit 1
+fi
+
+echo "Found protoc: $(protoc --version)"
+
 # Install required tools
 echo "Installing required tools..."
 pip3 install -q protobuf grpclib
