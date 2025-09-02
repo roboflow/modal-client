@@ -112,7 +112,7 @@ def deserialize(s: bytes, client, use_firewall: bool = False) -> Any:
         if use_firewall and env == "local":
             # CLIENT SIDE with firewall enabled: use rffickle for safety
             # NEVER fall back to regular pickle - if firewall is requested but unavailable, fail
-            from rffickle import DefaultFirewall
+            from fickle import DefaultFirewall
             firewall = DefaultFirewall()
             # This will block dangerous operations
             return firewall.loads(s)

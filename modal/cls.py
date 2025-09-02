@@ -178,6 +178,7 @@ def _bind_instance_method(cls: "_Cls", service_function: _Function, method_name:
     fun._is_method = True
     fun._app = service_function._app
     fun._spec = service_function._spec
+    fun._use_firewall = service_function._use_firewall  # Copy the firewall flag from the service function
     return fun
 
 
@@ -433,12 +434,16 @@ class _Obj:
 
         # The reason we don't *always* use this lazy loader is because it precludes attribute access
         # on local classes.
-        return _Function._from_loader(
+        fun = _Function._from_loader(
             method_loader,
             rep=f"Method({self._cls._name}.{k})",
             deps=lambda: [],  # TODO: use cls as dep instead of loading inside method_loader?
             hydrate_lazily=True,
         )
+        # Copy the firewall flag from the class service function if it exists
+        if self._cls._class_service_function and hasattr(self._cls._class_service_function, '_use_firewall'):
+            fun._use_firewall = self._cls._class_service_function._use_firewall
+        return fun
 
 
 Obj = synchronize_api(_Obj)

@@ -1,29 +1,43 @@
-# Roboflow Modal Client Fork v1.2.0
+# Roboflow Modal Client Fork v1.2.6
 
 ## Summary
-This is a Roboflow fork of the Modal client that adds support for `rffickle` - a secure deserialization library for untrusted pickle files.
+This release fixes a critical security vulnerability where the firewall flag was not properly propagated to lazy-loaded (non-hydrated) class methods, allowing pickle deserialization exploits to succeed on the first execution after server startup.
 
-## Changes Made
+## Critical Security Fix
 
-### Version Update
-- Bumped version from 1.1.4.dev23 to 1.2.0
+### Firewall Flag Propagation for Non-Hydrated Class Methods
+- **Issue**: When using `modal.Cls.from_name(..., use_firewall=True)`, the firewall flag was not being propagated to methods accessed on non-hydrated class instances (typical state on first access)
+- **Security Impact**: This allowed pickle deserialization exploits to bypass the firewall on the FIRST execution after server startup
+- **Fix**: Modified `_Obj.__getattr__` in `modal/cls.py` to properly copy the `_use_firewall` flag to lazy-loaded method functions
 
-### CI/CD Fixes
-1. **Copyright headers**: Added `# Copyright Modal Labs 2025` to all test files
-2. **Import ordering**: Fixed import order to follow standard (stdlib → third-party → local)
-3. **Type annotations**: Fixed type checking issues by properly threading `use_firewall` parameter through invocation classes
+## Technical Details
 
-### Feature Implementation
-- Added `use_firewall` parameter to `@app.function()` and `@app.cls()` decorators
-- Integrated `rffickle` for safe deserialization of untrusted pickled data
-- Modified `_Invocation` and `_InputPlaneInvocation` classes to support firewall flag
-- Updated `_process_result` to use firewall when enabled
+The fix ensures that even when accessing methods on non-hydrated class instances (common with `Cls.from_name()`), the firewall protection is active:
+
+```python
+# This now properly protects against exploits even on first execution:
+cls = modal.Cls.from_name("app-name", "ClassName", use_firewall=True)
+instance = cls(workspace_id="workspace")
+result = instance.execute_block.remote(...)  # Firewall active from first call
+```
+
+### Root Cause
+- When a class is loaded via `Cls.from_name()`, it starts in a non-hydrated state
+- Method access through `__getattr__` creates lazy-loaded functions
+- Previously, these lazy-loaded functions didn't inherit the `_use_firewall` flag
+- This meant the first execution (before hydration) was vulnerable
+
+### The Fix
+Modified the lazy loader creation in `_Obj.__getattr__` to copy the firewall flag from the class service function to the method function, ensuring protection is active even before hydration.
+
+## Files Changed
+- `modal/cls.py` - Modified `_Obj.__getattr__` to propagate `_use_firewall` flag to lazy-loaded methods
 
 ## How to Deploy to PyPI
 
 1. Build the package:
 ```bash
-python -m build
+./build_for_pypi.sh
 ```
 
 2. Upload to PyPI:
@@ -32,11 +46,16 @@ python -m twine upload dist/*
 ```
 
 ## Testing
-The test files demonstrate various aspects of the firewall functionality:
-- `test_firewall.py` - Main firewall blocking tests
-- `test_per_function_firewall.py` - Per-function configuration
-- `test_no_fallback.py` - Ensures no unsafe fallback when rffickle unavailable
-- `test_from_name_firewall.py` - Tests Cls.from_name() with firewall
+Critical tests to verify the fix:
+- Test with `modal.Cls.from_name()` using `use_firewall=True` 
+- Verify firewall blocks exploits on FIRST execution after server startup
+- Confirm no regression for hydrated class instances
+- Test with both parameterized and non-parameterized classes
 
-## Security Note
-When `use_firewall=True` is set, the client will use rffickle to safely deserialize pickled data, protecting against arbitrary code execution during deserialization.
+## Version History
+- v1.2.6 - Fixed critical firewall bypass for non-hydrated class methods (first execution vulnerability)
+- v1.2.5 - Fixed firewall flag propagation for parameterized classes
+- v1.2.4 - Fixed import issues
+- v1.2.3 - Fixed grpclib/grpcio incompatibility
+- v1.2.2 - Added grpcio dependency
+- v1.2.1 - Fixed PyPI package build

@@ -9,7 +9,9 @@ __pycache__
 .venv
 venv/
 build/
+dist/
 *.pyi
 **/*.txt
 **/.DS_Store
 .claude/settings.local.json
+*.desc

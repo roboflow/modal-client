@@ -15,7 +15,7 @@ def test_basic_firewall():
     
     # Test that rffickle is available
     try:
-        from rffickle import DefaultFirewall
+        from fickle import DefaultFirewall
         print("✅ rffickle is installed")
     except ImportError:
         print("❌ rffickle is not installed")
