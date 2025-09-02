@@ -6,6 +6,17 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.5 (2025-09-01)
+
+**Bug fixes:**
+- Fixed firewall flag propagation for parameterized classes when using `modal.Cls.from_name()` with `use_firewall=True`
+- The `use_firewall` flag is now correctly inherited by methods when accessing them on instantiated parameterized class objects
+- This ensures proper secure deserialization with `rffickle` when executing untrusted code in Modal sandboxes
+
+**Technical details:**
+- Added `_use_firewall` flag propagation in `_bind_instance_method` function in `modal/cls.py`
+- The flag is now copied from the service function to bound instance methods, maintaining security settings across the entire execution chain
+
 ### 1.2.4 (2025-08-30)
 
 **Critical Fix:**
