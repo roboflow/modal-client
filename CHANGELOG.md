@@ -6,6 +6,17 @@ This changelog documents user-facing updates (features, enhancements, fixes, and
 
 <!-- NEW CONTENT GENERATED BELOW. PLEASE PRESERVE THIS COMMENT. -->
 
+### 1.2.6 (2025-09-01)
+
+**Bug fixes:**
+- Fixed critical firewall flag propagation issue for non-hydrated (lazy-loaded) class methods when using `modal.Cls.from_name()` with `use_firewall=True`
+- The `use_firewall` flag is now properly propagated to methods accessed on class instances before the class is fully hydrated
+- This fix ensures that secure deserialization with `rffickle` is active on the very first execution after server startup, closing a security vulnerability where the first execution could bypass the firewall
+
+**Technical details:**
+- Modified `_Obj.__getattr__` method in `modal/cls.py` to copy the `_use_firewall` flag from the class service function to lazy-loaded method functions
+- This ensures the firewall protection is active even for non-hydrated class instances, which is the typical state for `Cls.from_name()` on first access
+
 ### 1.2.5 (2025-09-01)
 
 **Bug fixes:**
